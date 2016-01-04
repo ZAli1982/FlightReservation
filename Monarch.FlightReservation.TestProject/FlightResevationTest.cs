@@ -15,10 +15,10 @@ namespace Monarch.FlightReservation.TestProject
     [TestClass]
     public class FlightResevationTest
     {
-        
-        Mock<IRepository<Flight>> _mockFlightRepository;       
-        Mock<IRepository<Airport>> _mockAirportRepository;       
-        Mock<IRepository<AirportFlight>> _mockAirportFlightRepository;    
+
+        Mock<IRepository<Flight>> _mockFlightRepository;
+        Mock<IRepository<Airport>> _mockAirportRepository;
+        Mock<IRepository<AirportFlight>> _mockAirportFlightRepository;
         Mock<IRepository<TicketOffice>> _mockTicketOfficeRepository;
         IFlightReservationService service;
         [TestInitialize]
@@ -33,7 +33,11 @@ namespace Monarch.FlightReservation.TestProject
 
         [TestMethod]
         public void ShouldOutputListOfFlights()
-        {            
+        {
+            _mockFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Flights());
+            _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
+            _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
+
             var result = service.GetFlightDetail(0);
 
             Assert.AreEqual(6, result.Count);
@@ -42,6 +46,7 @@ namespace Monarch.FlightReservation.TestProject
         [TestMethod]
         public void ShouldSeeTheNewlyAddedFlightInList()
         {
+            //Arrange
             _mockFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Flights());
             _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
             _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
@@ -55,9 +60,10 @@ namespace Monarch.FlightReservation.TestProject
                 ArrivalTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 14, 0, 0),
                 DepartureTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 17, 0, 0)
             };
-            
+            //Act
             service.AddFlight(flightDetail);
 
+            //Assert
             _mockFlightRepository.Verify(x => x.Add(It.IsAny<Flight>()));
             _mockAirportFlightRepository.Verify(x => x.Add(It.IsAny<AirportFlight>()));
             //_mockAirportFlightRepository.Verify(x => x.Update(It.IsAny<AirportFlight>()));
@@ -66,8 +72,12 @@ namespace Monarch.FlightReservation.TestProject
         [TestMethod]
         public void ShouldGetOrderedListByDeparturedate()
         {
-           var result = service.GetOrderedFlightDetail("DepartureTime");
-            
+            _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
+            _mockFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Flights().ToList());
+            _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
+
+            var result = service.GetOrderedFlightDetail("DepartureTime");
+
             Assert.AreEqual(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day - 2, 12, 0, 0), result[0].DepartureTime);
             Assert.AreEqual(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 13, 0, 0), result[1].DepartureTime);
             Assert.AreEqual(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day + 1, 14, 0, 0), result[2].DepartureTime);
@@ -81,7 +91,7 @@ namespace Monarch.FlightReservation.TestProject
             _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
             _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
             var result = service.GetDepartureFlight("LTN");
-            
+
             Assert.AreEqual(2, result.Count);
             //Assert.AreEqual("LTN", result.Contains();
         }
@@ -89,12 +99,14 @@ namespace Monarch.FlightReservation.TestProject
         [TestMethod]
         public void ShouldGetFilterArrivalAirportFlightsBasedSearchOnISOCode()
         {
+            //Arrange
             _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
             _mockFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Flights().ToList());
             _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
             _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
+            //Act
             var result = service.GetArrivalFlight("LGW");
-
+            //Assert
             Assert.AreEqual(2, result.Count);
         }
 
@@ -112,7 +124,7 @@ namespace Monarch.FlightReservation.TestProject
             _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
 
             service.CancelFlight(1);
-            
+
             service.GetDepartureFlight("LTN");
 
             _mockFlightRepository.Verify(x => x.Update(It.IsAny<Flight>()));
@@ -121,9 +133,15 @@ namespace Monarch.FlightReservation.TestProject
         [TestMethod]
         public void ShouldGetFutureDepartureFlight()
         {
+            _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
+            _mockFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Flights().ToList());
+            _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
+            _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
+
             var result = service.GetFutureFlights(true);
-            Assert.IsTrue( DateTime.Now < result[0].DepartureTime);
-            Assert.AreEqual(4, result.Count);
+
+            Assert.IsTrue(DateTime.Now < result[0].DepartureTime);
+            Assert.AreEqual(3, result.Count);
         }
 
         [TestMethod]
@@ -136,13 +154,18 @@ namespace Monarch.FlightReservation.TestProject
 
             int buySeatfForFlight = 3;
             var result = service.PurchaseTicket(buySeatfForFlight);
-            
+
             Assert.AreEqual(173, result.SoldSeat);
         }
 
         [TestMethod]
         public void ShouldGetFlightListExcludingFullBookedFlights()
         {
+            _mockTicketOfficeRepository.Setup(x => x.Get()).Returns(Given_List_Valid_TicketOffices());
+            _mockFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Flights().ToList());
+            _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
+            _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
+
             var result = service.GetFutureFlights(false);
             Assert.IsTrue(DateTime.Now < result[0].DepartureTime);
             Assert.IsTrue(DateTime.Now < result[1].DepartureTime);
@@ -157,15 +180,10 @@ namespace Monarch.FlightReservation.TestProject
             _mockAirportFlightRepository.Setup(x => x.Get()).Returns(Given_A_List_Of_Airport_Flights());
             _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
             var result = service.PurchaseTicket(5);
-            
+
             Assert.AreEqual(60, result.Cost);
         }
 
-        [TestMethod]
-        public void TestGiHub()
-        {
-           //git hub test
-        }
 
         private List<TicketOffice> Given_List_Valid_TicketOffices()
         {
@@ -199,12 +217,12 @@ namespace Monarch.FlightReservation.TestProject
                     new Airport { Id = 3, Name = "Manchester", IsoCode ="MAN" },
                     new Airport { Id = 4, Name = "Amsterdam", IsoCode ="AMS" },
                     new Airport { Id = 5, Name = "Barcelona", IsoCode ="BCN" }
-                };        
+                };
         }
 
         private List<AirportFlight> Given_A_List_Of_Airport_Flights()
         {
-               return new List<AirportFlight> 
+            return new List<AirportFlight> 
                 {
                     new AirportFlight { ArriveAirportId = 5, DepartureAirportId = 1, FlightId = 1 },
                     new AirportFlight { ArriveAirportId = 2, DepartureAirportId = 3,  FlightId = 2 },
