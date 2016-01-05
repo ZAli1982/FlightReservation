@@ -184,6 +184,12 @@ namespace Monarch.FlightReservation.TestProject
             Assert.AreEqual(60, result.Cost);
         }
 
+        [TestMethod]
+        public void TestGitHub()
+        {
+            //Just testing github
+        }
+
 
         private List<TicketOffice> Given_List_Valid_TicketOffices()
         {
