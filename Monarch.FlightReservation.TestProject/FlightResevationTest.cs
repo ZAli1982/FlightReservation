@@ -141,7 +141,7 @@ namespace Monarch.FlightReservation.TestProject
             var result = service.GetFutureFlights(true);
 
             Assert.IsTrue(DateTime.Now < result[0].DepartureTime);
-            Assert.AreEqual(3, result.Count);
+            Assert.AreEqual(4, result.Count);
         }
 
         [TestMethod]
