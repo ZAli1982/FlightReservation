@@ -12,7 +12,7 @@ namespace Monarch.FlightReservation.Model.Repositories
     {
         public IList<Airport> Get()
         {
-            return null; // FakeDatabase.Airports;
+            return null; 
         }
 
         public void Add(Airport entity)

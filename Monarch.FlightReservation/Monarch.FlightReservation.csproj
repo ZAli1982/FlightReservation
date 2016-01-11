@@ -52,7 +52,7 @@
     <Compile Include="Model\Entities\Airport.cs" />
     <Compile Include="Model\Entities\TicketOffice.cs" />
     <Compile Include="Model\Entities\Flight.cs" />
-    <Compile Include="Model\FakeDatabase.cs" />
+    <Compile Include="Model\TestDatabase.cs" />
     <Compile Include="Model\Repositories\AirportFlightRepository.cs" />
     <Compile Include="Model\Repositories\AirportRepository.cs" />
     <Compile Include="Model\Repositories\Base\BaseRepository.cs" />
