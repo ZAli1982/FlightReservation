@@ -181,7 +181,7 @@ namespace Monarch.FlightReservation.TestProject
             _mockAirportRepository.Setup(x => x.Get()).Returns(Given_A_list_Of_Airports());
             var result = service.PurchaseTicket(5);
 
-            Assert.AreEqual(62, result.Cost);
+            Assert.AreEqual(60, result.Cost);
         }
 
         [TestMethod]
